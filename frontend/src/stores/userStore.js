@@ -1,48 +1,53 @@
-import { ref } from 'vue'
-import { defineStore } from 'pinia'
+import { ref, computed } from 'vue';
+import { defineStore } from 'pinia';
+import axios from 'axios';
 
 export const useUserStore = defineStore('user', () => {
-    const name = ref('')
-    const errorMessage = ref('')
-    const isLoading = ref(false)
+    const errorMessage = ref('');
+    const isLoading = ref(false);
+    const user = ref({ name: '' });
 
     function validateName() {
-        if (name.value.trim() === '') {
-            errorMessage.value = `Ім'я не може бути порожнім`
-            return false
+        if (user.value.name.trim() === '') {
+            errorMessage.value = `Ім'я не може бути порожнім`;
+            return false;
         }
-        errorMessage.value = ''
-        return true
+        errorMessage.value = '';
+        return true;
     }
 
     async function start(router) {
         if (!validateName()) {
-            return
+            return;
         }
 
-        isLoading.value = true
+        isLoading.value = true;
+
+        console.log(user.value)
 
         try {
-            // Эмуляция запроса на сервер
-            const response = await new Promise((resolve) => {
-                setTimeout(() => {
-                    // Условный ответ сервера
-                    resolve({ success: true })
-                }, 2000)
-            })
+            const response = await axios.post('http://localhost:5000/start', user.value);
 
-            isLoading.value = false
-
-            if (response.success) {
-                router.push('/success-page')
+            if (response.data.success) {
+                isLoading.value = false;
+                user.value = response.data.user;
             } else {
-                router.push('/error-page')
+                isLoading.value = false;
+                errorMessage.value = 'Ви вже у черзі';
             }
         } catch (error) {
-            isLoading.value = false
-            errorMessage.value = 'Произошла ошибка при отправке запроса'
+            isLoading.value = false;
+            errorMessage.value = 'Похибка на сервері';
         }
     }
 
-    return { name, errorMessage, isLoading, start }
-})
+    const computedUser = computed(() => user.value);
+
+    return {
+        name,
+        errorMessage,
+        isLoading,
+        start,
+        user: computedUser
+    };
+});

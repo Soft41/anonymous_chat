@@ -14,7 +14,7 @@ const start = () => userStore.start(router)
   <div>
     <LoadingSpinner  v-if="userStore.isLoading"></LoadingSpinner >
     <div v-else>
-      <input v-model="userStore.name" type="text" placeholder="Ваше ім'я" />
+      <input v-model="userStore.user.name" type="text" placeholder="Ваше ім'я" />
       <div v-if="userStore.errorMessage">{{ userStore.errorMessage }}</div>
       <button @click="start">Розпочати бесіду</button>
     </div>
