@@ -18,6 +18,7 @@ const start = () => userStore.start(router)
       <div v-if="userStore.errorMessage">{{ userStore.errorMessage }}</div>
       <button @click="start">Розпочати бесіду</button>
     </div>
+    <LoadingSpinner  v-if="userStore.isQueue"></LoadingSpinner >
   </div>
 </template>
 

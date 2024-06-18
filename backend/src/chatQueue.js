@@ -1,3 +1,4 @@
-const Queue = [];
+export const Queue = [];
+export const Chats = [];
 
-export default Queue;
+export default {Queue, Chats};

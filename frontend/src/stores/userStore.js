@@ -1,11 +1,16 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 export const useUserStore = defineStore('user', () => {
     const errorMessage = ref('');
     const isLoading = ref(false);
+    const isQueue = ref(false);
     const user = ref({ name: '' });
+    const roomId = ref('');
+    const socket = ref(null);
+    const messages = ref([]);
 
     function validateName() {
         if (user.value.name.trim() === '') {
@@ -23,31 +28,61 @@ export const useUserStore = defineStore('user', () => {
 
         isLoading.value = true;
 
-        console.log(user.value)
-
         try {
-            const response = await axios.post('http://localhost:5000/start', user.value);
+            socket.value = io('http://localhost:5000');
 
-            if (response.data.success) {
+            socket.value.on('connect', async () => {
+                const socketId = socket.value.id;
+
+                const response = await axios.post('http://localhost:5000/start', {
+                    name: user.value.name,
+                    socketId,
+                });
+
+                if (response.data.success) {
+                    isLoading.value = false;
+                    isQueue.value = true;
+                    user.value = response.data.user;
+                } else {
+                    isLoading.value = false;
+                    errorMessage.value = 'Ви вже у черзі';
+                }
+            });
+
+            socket.value.on('roomCreated', (data) => {
+                roomId.value = data.roomId;
+                console.log('Room created:', data);
                 isLoading.value = false;
-                user.value = response.data.user;
-            } else {
-                isLoading.value = false;
-                errorMessage.value = 'Ви вже у черзі';
-            }
+            });
+
+            socket.value.on('message', (message) => {
+                messages.value.push(message);
+            });
+
+            socket.value.on('disconnect', () => {
+                console.log('WebSocket off');
+            });
         } catch (error) {
             isLoading.value = false;
             errorMessage.value = 'Похибка на сервері';
         }
     }
 
+    function sendMessage(message) {
+        if (socket.value && roomId.value) {
+            socket.value.emit('message', { roomId: roomId.value, message });
+        }
+    }
+
     const computedUser = computed(() => user.value);
 
     return {
-        name,
+        user: computedUser,
         errorMessage,
         isLoading,
+        isQueue,
         start,
-        user: computedUser
+        sendMessage,
+        messages,
     };
 });
