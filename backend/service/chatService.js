@@ -6,7 +6,7 @@ const socketMap = new Map();
 class ChatService {
     addQueue(user, socket) {
         Queue.push(user);
-        socketMap.set(user.uuid, socket); // Сохраняем WebSocket соединение
+        socketMap.set(user.uuid, socket);
 
         if (Queue.length >= 2) {
             const [user1, user2] = Queue.splice(0, 2);

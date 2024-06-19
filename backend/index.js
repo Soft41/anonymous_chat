@@ -23,8 +23,8 @@ io.on('connection', (socket) => {
     console.log(`User connected: ${socket.id}`);
 
     socket.on('message', (data) => {
-        const { roomId, message } = data;
-        io.to(roomId).emit('message', message); // Пересылаем сообщение всем пользователям в комнате
+        const { roomId } = data;
+        io.to(roomId).emit('message', data);
     });
 
     socket.on('disconnect', () => {

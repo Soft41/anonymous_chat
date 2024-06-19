@@ -36,7 +36,7 @@ export const useUserStore = defineStore('user', () => {
 
                 const response = await axios.post('http://localhost:5000/start', {
                     name: user.value.name,
-                    socketId,
+                    socketId, // Отправляем socketId на сервер
                 });
 
                 if (response.data.success) {
@@ -51,16 +51,18 @@ export const useUserStore = defineStore('user', () => {
 
             socket.value.on('roomCreated', (data) => {
                 roomId.value = data.roomId;
+                user.value = data.users.find(u => u.uuid === user.value.uuid);
                 console.log('Room created:', data);
-                isLoading.value = false;
+                router.push('/room');
             });
 
             socket.value.on('message', (message) => {
+                console.log(message)
                 messages.value.push(message);
             });
 
             socket.value.on('disconnect', () => {
-                console.log('WebSocket off');
+                console.log('WebSocket отключен');
             });
         } catch (error) {
             isLoading.value = false;
@@ -70,7 +72,7 @@ export const useUserStore = defineStore('user', () => {
 
     function sendMessage(message) {
         if (socket.value && roomId.value) {
-            socket.value.emit('message', { roomId: roomId.value, message });
+            socket.value.emit('message', { roomId: roomId.value, message, user: user.value });
         }
     }
 

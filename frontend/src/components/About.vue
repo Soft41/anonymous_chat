@@ -31,8 +31,7 @@ import CommunityIcon from './icons/IconCommunity.vue'
       <EcosystemIcon />
     </template>
     <template #heading>Керівник</template>
-
-    Попівщій
+    Попівщий Василь Іванович
   </WelcomeItem>
 
 </template>
