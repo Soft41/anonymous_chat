@@ -11,6 +11,7 @@ export const useUserStore = defineStore('user', () => {
     const roomId = ref('');
     const socket = ref(null);
     const messages = ref([]);
+    const showExitMessage = ref(false);
 
     function validateName() {
         if (user.value.name.trim() === '') {
@@ -36,7 +37,7 @@ export const useUserStore = defineStore('user', () => {
 
                 const response = await axios.post('http://localhost:5000/start', {
                     name: user.value.name,
-                    socketId, // Отправляем socketId на сервер
+                    socketId,
                 });
 
                 if (response.data.success) {
@@ -57,8 +58,12 @@ export const useUserStore = defineStore('user', () => {
             });
 
             socket.value.on('message', (message) => {
-                console.log(message)
+                console.log(message);
                 messages.value.push(message);
+            });
+
+            socket.value.on('exit', () => {
+                showExitMessage.value = true;
             });
 
             socket.value.on('disconnect', () => {
@@ -76,6 +81,18 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
+    function exitChat(router) {
+        if (socket.value && roomId.value) {
+            socket.value.emit('exit', roomId.value);
+            socket.value.disconnect();
+            router.push('/');
+            isLoading.value = false;
+            isQueue.value = false;
+            showExitMessage.value = false;
+            messages.value = [];
+        }
+    }
+
     const computedUser = computed(() => user.value);
 
     return {
@@ -85,6 +102,8 @@ export const useUserStore = defineStore('user', () => {
         isQueue,
         start,
         sendMessage,
+        exitChat,
         messages,
+        showExitMessage,
     };
 });

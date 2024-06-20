@@ -30,6 +30,11 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.id}`);
     });
+
+    socket.on('exit', (roomId) => {
+        socket.leave(roomId);
+        io.to(roomId).emit('exit');
+    });
 });
 
 const start = async () => {
